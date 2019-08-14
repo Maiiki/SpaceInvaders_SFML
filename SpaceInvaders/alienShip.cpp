@@ -9,7 +9,7 @@ alienShip::alienShip(int windowWidth, int windowHeight, int positionX, int posit
 	m_Height = height;
 	m_Width = width;
 	m_StepCount = 0;
-	m_Speed = 20; //9 
+	m_Speed = 1; //9 
 	m_MaxSteps = 25;
 	m_Direction = 1;
 	m_Points = points;

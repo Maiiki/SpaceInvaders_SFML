@@ -3,22 +3,25 @@
 gameManager::gameManager(std::size_t windowWidth, std::size_t windowHeight, std::size_t horizantalALiens)
 {
 	m_PtWin = new sf::RenderWindow(sf::VideoMode(windowWidth, windowHeight), "Space Invaders!", sf::Style::None);
+	m_PtWin->setFramerateLimit(60);
 	m_winH = windowHeight;
 	m_winW = windowWidth;
 	m_HorAlien = horizantalALiens;
 	m_VerAlien = m_HorAlien;
-	m_GroundHeight = m_winH / 10;
+	m_GroundHeight = 0;
+	m_GroundIncrease = 0.5f;
 
 	m_AlienWidth = (m_winW / m_HorAlien) / 3;
 	m_AlienHeight = m_AlienWidth;
 	m_AlienGapX = m_AlienWidth;
 	m_AlienGapY = m_AlienHeight/2;
-	m_AlienMaxBullets = 10;
+	m_AlienMaxBullets = 1;
+	m_AlienKilled = 0;
 
 	m_PlayerWidth = 20;
 	m_PlayerHeight = 20;
-	m_PlayerSpeed = 1;
-	m_PlayerMaxBullets = 1;
+	m_PlayerSpeed = 10;
+	m_PlayerMaxBullets = 3;
 
 	m_BulletWidth = m_PlayerWidth / 10;
 	m_BulletHeight = m_PlayerHeight / 2;
@@ -26,11 +29,13 @@ gameManager::gameManager(std::size_t windowWidth, std::size_t windowHeight, std:
 	
 	m_FrameCount = 0;
 	m_FrameRate = 100;
-	m_Acceleration = 10;
+	m_Acceleration = 1;
 
 	m_isBullet = false;
 	m_isGoingRight = true;
-	m_PlayerBullet.setSize(sf::Vector2f(m_BulletWidth, m_BulletHeight));
+	m_isAlive = true;
+	m_isWon = false;
+	//m_PlayerBullet.setSize(sf::Vector2f(m_BulletWidth, m_BulletHeight));
 	
 	m_Ground.setPosition(0, m_winH - m_GroundHeight);
 	m_Ground.setSize(sf::Vector2f(m_winW,m_winH));
@@ -50,7 +55,7 @@ void gameManager::GameLoop()
 	//Framerate = loops x segundo
 	//Delta Time = Tiempo transcurrido entre loops
 	CreateAliens();
-	while (m_PtWin->isOpen())
+	while (m_PtWin->isOpen() && m_isAlive)
 	{
 		sf::Event event;
 		while (m_PtWin->pollEvent(event))
@@ -90,22 +95,23 @@ void gameManager::GameLoop()
 		RenderGame(m_PtWin);
 		m_PtWin->display();
 		m_FrameCount++;
+		if (m_AlienKilled == (m_HorAlien*m_VerAlien))
+		{
+			m_isWon = true;
+			std::cout << "Player Won!" << std::endl;
+		}
 	}
 }
 
 void gameManager::UpdateGame()
 {
-	if (m_FrameCount == m_FrameRate)
+	CheckAlienBorders();
+	for (size_t i = 0; i < m_Aliens.size(); ++i)
 	{
-		CheckAlienBorders();
-		for (size_t i = 0; i < m_Aliens.size(); ++i)
+		for (size_t j = 0; j < m_Aliens[i].size(); j++)
 		{
-			for (size_t j = 0; j < m_Aliens[i].size(); j++)
-			{
-				m_Aliens[i][j]->Update();
-			}
+			m_Aliens[i][j]->Update();
 		}
-		m_FrameCount = 0;
 	}
 
 	if (m_AlienBullets.size() < m_AlienMaxBullets)
@@ -115,6 +121,8 @@ void gameManager::UpdateGame()
 
 	UpdatePlayerBullets();
 	UpdateAlienBullets();
+	m_Ground.setPosition(0, m_winH - m_GroundHeight);
+	m_Ground.setSize(sf::Vector2f(m_winW, m_winH));
 }
 
 void gameManager::RenderGame(sf::RenderWindow* win)
@@ -167,7 +175,7 @@ void gameManager::CreateAliens()
 void gameManager::CreatePlayerBullet()
 {
 	bullet* newBullet = new bullet(m_Player.getPosition().x + ((m_PlayerWidth / 2) - m_BulletWidth / 2), 
-		m_Player.getPosition().y, m_BulletWidth, m_BulletHeight, -1);
+		m_Player.getPosition().y, m_BulletWidth, m_BulletHeight, -3);
 	m_PlayerBullets.push_back(newBullet);
 }
 
@@ -209,6 +217,8 @@ void gameManager::CheckPlayerHit()
 			&& m_AlienBullets[i]->GiveCollider()->top + m_BulletHeight > m_Player.getPosition().y)
 		{
 			m_AlienBullets[i]->Destroy();
+			m_Player.move(0.0f, -(m_GroundIncrease));
+			m_GroundHeight += m_GroundIncrease;
 		}
 	}
 }
@@ -220,7 +230,7 @@ void gameManager::CreateAlienBullet()
 	if (m_Aliens[x][y]->GiveState())
 	{
 		bullet* newBullet = new bullet(m_Aliens[x][y]->GiveCollider().left + m_AlienWidth / 2 - m_BulletWidth / 2,
-			m_Aliens[x][y]->GiveCollider().top + m_AlienHeight, m_BulletWidth, m_BulletHeight, .1f);
+			m_Aliens[x][y]->GiveCollider().top + m_AlienHeight, m_BulletWidth, m_BulletHeight, .8f);
 		m_AlienBullets.push_back(newBullet);
 	}
 	
@@ -311,8 +321,29 @@ void gameManager::CheckAlienHit()
 					{
 						m_Aliens[i][j]->Destroy();
 						m_PlayerBullets[k]->Destroy();
-						m_Acceleration += 0.1f;
+						m_Acceleration += 0.02f;
+						if(m_AlienMaxBullets < m_HorAlien){ m_AlienMaxBullets++; }
+						m_AlienKilled++;
 					}
+
+					if ((m_Aliens[i][j]->GiveCollider().top
+						< m_Player.getPosition().y + m_PlayerHeight) //m_PlayerBullet.getPosition().y + m_BulletHeight)
+						&&
+						(m_Aliens[i][j]->GiveCollider().top + m_AlienHeight
+						> m_Player.getPosition().y)//m_PlayerBullet.getPosition().y)
+						&&
+						(m_Aliens[i][j]->GiveCollider().left
+							< m_Player.getPosition().x + m_PlayerHeight)//m_PlayerBullet.getPosition().x + m_BulletWidth)
+						&&
+						(m_Aliens[i][j]->GiveCollider().left + m_AlienWidth
+							> m_Player.getPosition().x)
+						||
+						m_Aliens[i][j]->GiveCollider().top+m_AlienHeight>= m_winH-m_GroundHeight)
+					{
+						m_isAlive = false;
+						std::cout << "Player lost..." << std::endl;
+					}
+
 				}
 			}
 		}

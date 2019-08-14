@@ -38,8 +38,8 @@ private:
 		m_HorAlien, m_VerAlien, m_AlienGapX, m_AlienGapY, m_AlienWidth, m_AlienHeight,
 		m_PlayerWidth, m_PlayerHeight,
 		m_BulletWidth, m_BulletHeight,
-		m_GroundHeight;
-	bool m_isBullet, m_isGoingRight;
+		m_GroundHeight, m_AlienKilled;
+	bool m_isBullet, m_isGoingRight, m_isAlive, m_isWon, m_GroundIncrease;
 	float m_Acceleration, m_PlayerSpeed;
 	std::vector<std::vector<alienShip*>> m_Aliens;
 	std::vector<bullet*> m_PlayerBullets;
@@ -47,6 +47,6 @@ private:
 	sf::RenderWindow* m_PtWin;
 	sf::RectangleShape m_Ground;
 	sf::RectangleShape m_Player;
-	sf::RectangleShape m_PlayerBullet;
+	//sf::RectangleShape m_PlayerBullet;
 };
 
