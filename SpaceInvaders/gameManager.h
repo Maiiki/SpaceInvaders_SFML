@@ -28,7 +28,7 @@ public:
 	void CheckAlienBorders();
 	void CheckAlienHit();
 
-	void IncreaseSpeed();
+	void SetSpeed();
 	//void ChangeEnemiesDirection();
 
 private:

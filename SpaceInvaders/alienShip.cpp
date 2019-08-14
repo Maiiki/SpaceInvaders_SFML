@@ -24,9 +24,9 @@ alienShip::~alienShip()
 
 }
 
-void alienShip::ChangeSpeed(float acceleration)
+void alienShip::SetSpeed(float acceleration)
 {
-	m_Speed += acceleration;
+	m_Speed = acceleration;
 }
 
 void alienShip::ChangeDirection()

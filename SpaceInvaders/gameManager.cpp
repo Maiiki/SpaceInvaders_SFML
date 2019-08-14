@@ -26,7 +26,7 @@ gameManager::gameManager(std::size_t windowWidth, std::size_t windowHeight, std:
 	
 	m_FrameCount = 0;
 	m_FrameRate = 100;
-	m_Acceleration = 1;
+	m_Acceleration = 10;
 
 	m_isBullet = false;
 	m_isGoingRight = true;
@@ -85,10 +85,10 @@ void gameManager::GameLoop()
 		}
 		
 		m_PtWin->clear();
+		SetSpeed();
 		UpdateGame();
 		RenderGame(m_PtWin);
 		m_PtWin->display();
-		//if (m_FrameCount < m_FrameRate) { m_FrameCount++; }
 		m_FrameCount++;
 	}
 }
@@ -217,9 +217,13 @@ void gameManager::CreateAlienBullet()
 {
 	int x = rand() % m_HorAlien;
 	int y = rand() % m_VerAlien;
-	bullet* newBullet = new bullet(m_Aliens[x][y]->GiveCollider().left+m_AlienWidth/2 -m_BulletWidth/2,
-		m_Aliens[x][y]->GiveCollider().top+m_AlienHeight,m_BulletWidth, m_BulletHeight, .1f);
-	m_AlienBullets.push_back(newBullet);
+	if (m_Aliens[x][y]->GiveState())
+	{
+		bullet* newBullet = new bullet(m_Aliens[x][y]->GiveCollider().left + m_AlienWidth / 2 - m_BulletWidth / 2,
+			m_Aliens[x][y]->GiveCollider().top + m_AlienHeight, m_BulletWidth, m_BulletHeight, .1f);
+		m_AlienBullets.push_back(newBullet);
+	}
+	
 }
 
 void gameManager::UpdateAlienBullets()
@@ -254,7 +258,7 @@ void gameManager::CheckAlienBorders()
 {
 	if (m_isGoingRight)
 	{
-		if (m_Aliens[m_HorAlien - 1][m_VerAlien - 1]->GiveCollider().left + m_AlienWidth >= (m_winW - (m_AlienWidth * 3)))
+		if (m_Aliens[m_HorAlien - 1][m_VerAlien - 1]->GiveCollider().left + m_AlienWidth + m_Acceleration >= (m_winW - (m_AlienWidth * 3)))
 		{
 			for (size_t i = 0; i < m_Aliens.size(); ++i)
 			{
@@ -268,7 +272,7 @@ void gameManager::CheckAlienBorders()
 	}
 	else
 	{
-		if (m_Aliens[0][0]->GiveCollider().left - m_AlienWidth <= (m_AlienWidth * 2))
+		if (m_Aliens[0][0]->GiveCollider().left - m_Acceleration <= (m_AlienWidth * 2))
 		{
 			for (size_t i = 0; i < m_Aliens.size(); ++i)
 			{
@@ -305,10 +309,9 @@ void gameManager::CheckAlienHit()
 						(m_Aliens[i][j]->GiveCollider().left + m_AlienWidth
 							> m_PlayerBullets[k]->GiveCollider()->left))
 					{
-
 						m_Aliens[i][j]->Destroy();
 						m_PlayerBullets[k]->Destroy();
-						//IncreaseSpeed();
+						m_Acceleration += 0.1f;
 					}
 				}
 			}
@@ -347,14 +350,14 @@ void gameManager::CheckAlienHit()
 	//}
 }
 
-void gameManager::IncreaseSpeed()
+void gameManager::SetSpeed()
 {
 	/*m_FrameRate -= 1;*/
 	for (size_t i = 0; i < m_Aliens.size(); ++i)
 	{
 		for (size_t j = 0; j < m_Aliens[i].size(); j++)
 		{
-			m_Aliens[i][j]->ChangeSpeed(m_Acceleration);
+			m_Aliens[i][j]->SetSpeed(m_Acceleration);
 		}
 	}
 }

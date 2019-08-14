@@ -7,7 +7,7 @@ class alienShip :
 public:
 	alienShip(int windowWidth, int windowHeight,int positionX, int positionY, int width, int height, int points);
 	~alienShip();
-	void ChangeSpeed(float acceleration);
+	void SetSpeed(float acceleration);
 	void ChangeDirection();
 	void ChangeColor(sf::Color color);
 	bool GiveState();
