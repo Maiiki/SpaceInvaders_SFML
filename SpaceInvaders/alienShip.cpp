@@ -9,11 +9,12 @@ alienShip::alienShip(int windowWidth, int windowHeight, int positionX, int posit
 	m_Height = height;
 	m_Width = width;
 	m_StepCount = 0;
-	m_Speed = 9; // 
+	m_Speed = 20; //9 
 	m_MaxSteps = 25;
 	m_Direction = 1;
 	m_Points = points;
 	m_isActive = true;
+	m_isGoingDown = false;
 	m_Body.setSize(sf::Vector2f(m_Width, m_Height));
 	m_Body.setPosition(sf::Vector2f((float)m_PosX, (float)m_PosY));
 }
@@ -26,12 +27,12 @@ alienShip::~alienShip()
 void alienShip::ChangeSpeed(float acceleration)
 {
 	m_Speed += acceleration;
-	m_MaxSteps = (450 / m_Speed);
 }
 
 void alienShip::ChangeDirection()
 {
 	m_Direction *= -1;
+	m_isGoingDown = true;
 }
 
 void alienShip::ChangeColor(sf::Color color)
@@ -57,18 +58,16 @@ sf::IntRect alienShip::GiveCollider()
 
 void alienShip::Update()
 {
-	if (m_StepCount < m_MaxSteps)
+	if (!m_isGoingDown) //Si no estoy bajando
 	{
 		m_PosX += (m_Speed * m_Direction);
 		m_Body.setPosition(sf::Vector2f((float)m_PosX, (float)m_PosY));
-		m_StepCount++;
 	}
 	else
 	{
-		m_PosY += (m_Speed * 2);
-		ChangeDirection();
+		m_PosY += (m_Height/2);
 		m_Body.setPosition(sf::Vector2f((float)m_PosX, (float)m_PosY));
-		m_StepCount = 0;
+		m_isGoingDown = false;
 	}
 	
 }

@@ -18,6 +18,7 @@ public:
 
 private:
 	int m_Points, m_Direction, m_StepCount, m_MaxSteps, m_winW, m_winH;
+	bool m_isGoingDown;
 	sf::RectangleShape m_Body;
 };
 
