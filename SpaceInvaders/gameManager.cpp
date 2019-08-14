@@ -39,6 +39,10 @@ gameManager::~gameManager() {};
 
 void gameManager::GameLoop()
 {
+	
+
+	m_PtWin->setFramerateLimit(300);
+
 	//Frame = loop
 	//Framerate = loops x segundo
 	//Delta Time = Tiempo transcurrido entre loops
